@@ -1,14 +1,22 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { load, save } from '../utils/storage.js'
-import { emptyState, newBoard, newCitation } from '../data/schema.js'
+import { emptyState, emptyGamification, newBoard, newCitation } from '../data/schema.js'
 import { uid } from '../utils/id.js'
+import { COMPLETIONS_PER_LEVEL, getLevel } from '../data/levels.js'
 
 export function useAppState() {
   const [state, setState] = useState(() => {
     const loaded = load()
-    if (loaded && Array.isArray(loaded.boards)) return loaded
+    if (loaded && Array.isArray(loaded.boards)) {
+      // migration: ensure gamification block exists for older saved states
+      if (!loaded.gamification) loaded.gamification = emptyGamification()
+      if (!loaded.settings) loaded.settings = { dailyGoal: 10, soundEnabled: true }
+      return loaded
+    }
     return emptyState()
   })
+  const [celebration, setCelebration] = useState(null)
+  const clearCelebration = useCallback(() => setCelebration(null), [])
   const firstRun = useRef(true)
 
   useEffect(() => {
@@ -84,26 +92,60 @@ export function useAppState() {
   }, [])
 
   const moveCitation = useCallback((boardId, citationId, newStatus, newSub = undefined) => {
-    setState(s => ({
-      ...s,
-      boards: s.boards.map(b => b.id !== boardId ? b : ({
-        ...b,
-        citations: b.citations.map(c => {
-          if (c.id !== citationId) return c
-          const completed = (newStatus === 'relevant' || newStatus === 'irrelevant')
-          let sub = newSub !== undefined ? newSub : c.subClassification
-          if (newStatus !== 'relevant') sub = null
-          else if (!sub) sub = 'A'
-          return {
-            ...c,
-            status: newStatus,
-            subClassification: sub,
-            updatedAt: Date.now(),
-            completedAt: completed ? (c.completedAt ?? Date.now()) : null
-          }
-        })
-      }))
-    }))
+    let pendingCelebration = null
+    setState(s => {
+      let firstTimeCompletion = false
+      let isRelevant = false
+      const boards = s.boards.map(b => {
+        if (b.id !== boardId) return b
+        return {
+          ...b,
+          citations: b.citations.map(c => {
+            if (c.id !== citationId) return c
+            const completed = (newStatus === 'relevant' || newStatus === 'irrelevant')
+            const wasCompleted = c.completedAt != null
+            if (completed && !wasCompleted) {
+              firstTimeCompletion = true
+              isRelevant = newStatus === 'relevant'
+            }
+            let sub = newSub !== undefined ? newSub : c.subClassification
+            if (newStatus !== 'relevant') sub = null
+            else if (!sub) sub = 'A'
+            return {
+              ...c,
+              status: newStatus,
+              subClassification: sub,
+              updatedAt: Date.now(),
+              completedAt: completed ? (c.completedAt ?? Date.now()) : null
+            }
+          })
+        }
+      })
+
+      let gamification = s.gamification ?? emptyGamification()
+      if (firstTimeCompletion) {
+        const points = gamification.points + (isRelevant ? 15 : 10)
+        const totalCompletions = gamification.totalCompletions + 1
+        const nextCompletionsAtLevel = gamification.completionsAtLevel + 1
+        const leveledUp = nextCompletionsAtLevel >= COMPLETIONS_PER_LEVEL
+        const newLevel = leveledUp ? gamification.level + 1 : gamification.level
+        gamification = {
+          ...gamification,
+          points,
+          totalCompletions,
+          completionsAtLevel: leveledUp ? 0 : nextCompletionsAtLevel,
+          level: newLevel
+        }
+        pendingCelebration = leveledUp
+          ? { type: 'levelUp', level: getLevel(newLevel) }
+          : { type: 'completion' }
+      }
+      return { ...s, boards, gamification }
+    })
+
+    if (pendingCelebration) {
+      setCelebration({ ...pendingCelebration, key: Date.now() + Math.random() })
+    }
   }, [])
 
   const importCitations = useCallback((boardId, items) => {
@@ -143,10 +185,16 @@ export function useAppState() {
     })
   }, [])
 
+  const setSoundEnabled = useCallback((enabled) => {
+    setState(s => ({ ...s, settings: { ...s.settings, soundEnabled: !!enabled } }))
+  }, [])
+
   return {
     state,
     addBoard, renameBoard, deleteBoard, setActiveBoard,
     addCitation, updateCitation, deleteCitation, moveCitation, importCitations,
-    replaceState, mergeState
+    replaceState, mergeState,
+    celebration, clearCelebration,
+    setSoundEnabled
   }
 }

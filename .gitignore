@@ -2,3 +2,11 @@ node_modules/
 dist/
 ~$*
 *.tmp
+.vercel
+.DS_Store
+.vercel/
+.claude/settings.local.json
+
+.claude/skills/patent-source-analyzer-workspace/
+source_analyses/
+comparison.pdf

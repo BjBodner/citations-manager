@@ -3,7 +3,7 @@ import { STATUSES, SUB_CLASSIFICATIONS } from '../data/constants.js'
 import CitationCard from './CitationCard.jsx'
 
 export default function KanbanBoard({
-  citations, onMove, onEdit, onDelete, onLinkClick, onChangeSub
+  citations, level, onMove, onEdit, onDelete, onLinkClick, onChangeSub
 }) {
   const [activeRelevantTab, setActiveRelevantTab] = useState('ALL')
   const [dragOver, setDragOver] = useState(null)
@@ -23,22 +23,31 @@ export default function KanbanBoard({
     onMove(id, statusId, sub)
   }
 
+  const cardTheme = level?.cardTheme || 'soft'
+
   return (
-    <div className="kanban">
+    <div className={'kanban kanban-theme-' + cardTheme}>
       {STATUSES.map(col => {
         const items = citations.filter(c => c.status === col.id)
         const filtered = (col.id === 'relevant' && activeRelevantTab !== 'ALL')
           ? items.filter(c => c.subClassification === activeRelevantTab)
           : items
+        const p = level?.palette?.[col.id] || {}
+        const colStyle = {
+          '--col-bg': p.bg || '#fff',
+          '--col-border': p.border || '#e5e7eb',
+          '--col-accent': p.accent || col.color
+        }
         return (
           <div
             key={col.id}
-            className={'kanban-col' + (dragOver === col.id ? ' drag-over' : '')}
+            className={'kanban-col col-' + col.id + (dragOver === col.id ? ' drag-over' : '')}
+            style={colStyle}
             onDragOver={e => onDragOver(e, col.id)}
             onDragLeave={() => setDragOver(prev => prev === col.id ? null : prev)}
             onDrop={e => onDrop(e, col.id)}
           >
-            <div className="kanban-col-head" style={{ borderTopColor: col.color }}>
+            <div className="kanban-col-head">
               <span className="kanban-col-title">{col.label}</span>
               <span className="kanban-col-count">{items.length}</span>
             </div>
@@ -61,6 +70,7 @@ export default function KanbanBoard({
                 <CitationCard
                   key={c.id}
                   citation={c}
+                  cardTheme={cardTheme}
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onLinkClick={onLinkClick}

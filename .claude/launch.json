@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "prior-art-report",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8090", "--directory", "/Users/benjaminbodner/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/24b17343-aaef-4ea6-bd8b-07ebd7d91c01/0a9b69ec-4218-4dfc-a4de-284c831cdeb7/patent-prior-art-workspace/iteration-1/eval-yolov10-vs-yolov8/with_skill/outputs"],
+      "port": 8090
     }
   ]
 }

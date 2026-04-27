@@ -39,8 +39,18 @@ export function emptyState() {
     exportedAt: new Date().toISOString(),
     settings: { dailyGoal: 10, soundEnabled: true },
     streak: { current: 0, lastMetDate: null },
+    gamification: emptyGamification(),
     boards: [],
     activeBoardId: null
+  }
+}
+
+export function emptyGamification() {
+  return {
+    points: 0,
+    level: 0,
+    completionsAtLevel: 0,
+    totalCompletions: 0
   }
 }
 

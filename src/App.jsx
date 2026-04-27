@@ -4,16 +4,24 @@ import CaseSwitcher from './components/CaseSwitcher.jsx'
 import KanbanBoard from './components/KanbanBoard.jsx'
 import CitationForm from './components/CitationForm.jsx'
 import ImportExport from './components/ImportExport.jsx'
+import PatentFetcher from './components/PatentFetcher.jsx'
+import GameHud from './components/GameHud.jsx'
+import CelebrationOverlay from './components/CelebrationOverlay.jsx'
+import { getLevel } from './data/levels.js'
 
 export default function App() {
   const {
     state,
     addBoard, renameBoard, deleteBoard, setActiveBoard,
     addCitation, updateCitation, deleteCitation, moveCitation, importCitations,
-    replaceState, mergeState
+    replaceState, mergeState,
+    celebration, clearCelebration, setSoundEnabled
   } = useAppState()
 
-  const [view, setView] = useState('board') // 'board' | 'cases' | 'ie'
+  const level = getLevel(state.gamification?.level ?? 0)
+  const soundEnabled = state.settings?.soundEnabled ?? true
+
+  const [view, setView] = useState('board') // 'board' | 'cases' | 'ie' | 'fetch'
   const [editingCitation, setEditingCitation] = useState(null)
   const [creatingCitation, setCreatingCitation] = useState(false)
 
@@ -50,7 +58,7 @@ export default function App() {
   }
 
   return (
-    <div className="app" dir="rtl" lang="he">
+    <div className={'app theme-' + level.cardTheme} dir="rtl" lang="he" data-level={level.id}>
       <header className="app-header">
         <h1>מנהל ציטוטים</h1>
         {activeBoard && view === 'board' && (
@@ -60,6 +68,7 @@ export default function App() {
           <button className={'tab' + (view === 'board' ? ' active' : '')} onClick={() => setView('board')}>לוח</button>
           <button className={'tab' + (view === 'cases' ? ' active' : '')} onClick={() => setView('cases')}>תיקים</button>
           <button className={'tab' + (view === 'ie' ? ' active' : '')} onClick={() => setView('ie')}>ייבוא/ייצוא</button>
+          <button className={'tab' + (view === 'fetch' ? ' active' : '')} onClick={() => setView('fetch')}>שליפת ציטוטים</button>
         </nav>
       </header>
 
@@ -84,6 +93,13 @@ export default function App() {
               </div>
             ) : (
               <>
+                <GameHud
+                  gamification={state.gamification}
+                  level={level}
+                  soundEnabled={soundEnabled}
+                  onToggleSound={setSoundEnabled}
+                  streak={state.streak}
+                />
                 <div className="board-toolbar">
                   <div>
                     <strong>{activeBoard.name}</strong>
@@ -109,6 +125,7 @@ export default function App() {
 
                 <KanbanBoard
                   citations={activeBoard.citations}
+                  level={level}
                   onMove={(citId, status, sub) => moveCitation(activeBoard.id, citId, status, sub)}
                   onEdit={(c) => { setEditingCitation(c); setCreatingCitation(false) }}
                   onDelete={(citId) => deleteCitation(activeBoard.id, citId)}
@@ -129,7 +146,20 @@ export default function App() {
             onMergeState={mergeState}
           />
         )}
+
+        {view === 'fetch' && (
+          <PatentFetcher
+            activeBoard={activeBoard}
+            onImport={importCitations}
+          />
+        )}
       </main>
+
+      <CelebrationOverlay
+        celebration={celebration}
+        soundEnabled={soundEnabled}
+        onDone={clearCelebration}
+      />
 
       <footer className="app-footer">
         <span>שלב 2 — טאבים, תיקים וניווט. נתונים ב-localStorage בלבד.</span>

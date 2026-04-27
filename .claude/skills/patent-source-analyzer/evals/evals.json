@@ -1,0 +1,50 @@
+{
+  "skill_name": "patent-source-analyzer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "תנתח את הפטנט הזה בשבילי כאמנות קודמת: https://patents.google.com/patent/US6285999B1/en",
+      "expected_output": "Two markdown files saved to source_analyses/: one English analysis report with title, abstract, technical summary, prior art findings with citations, and classification recommendation (X/Y/I/A); one full Hebrew translation with Israeli patent law terminology.",
+      "files": [],
+      "expectations": [
+        "Creates a file ending in _en.md inside source_analyses/",
+        "Creates a file ending in _he.md inside source_analyses/",
+        "English file contains a section called 'Prior Art Claim Elements and Findings'",
+        "Hebrew file contains the section header 'פריטי אמנות קודמת וממצאים'",
+        "English file contains a Classification recommendation (X, Y, I, or A) in section 7",
+        "Hebrew file uses Israeli patent law terminology such as 'אמנות קודמת' or 'תביעה' or 'מגלה' or 'פוסל'",
+        "Files are named with a date-slug format (YYYY-MM-DD at start)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "יש לי מאמר מדעי שרוצה לבדוק כאמנות קודמת: https://arxiv.org/abs/1706.03762 — תוריד ותנתח אותו",
+      "expected_output": "Two markdown files with full analysis of the Attention Is All You Need paper. English file includes abstract, technical summary, and specific findings from the paper with section references. Hebrew translation is complete with proper patent terminology.",
+      "files": [],
+      "expectations": [
+        "Creates a file ending in _en.md inside source_analyses/",
+        "Creates a file ending in _he.md inside source_analyses/",
+        "English file includes 'Publication Date' or 'Authors' field",
+        "English file contains section '3. Technical Summary'",
+        "English file contains section '6. Limitations and Gaps'",
+        "Hebrew file contains section '6. פערים וחסרים במסמך'",
+        "English file uses patent legal terms like 'discloses', 'teaches', 'claim element', 'prior art'"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "בדוק אם הפטנט הזה יכול לשמש כ-X או Y לפי סיווג רשות הפטנטים הישראלית: https://patents.google.com/patent/US7168087B2/en",
+      "expected_output": "Analysis with clear X or Y or I or A classification recommendation with justification. Both English and Hebrew files saved to source_analyses/.",
+      "files": [],
+      "expectations": [
+        "Creates a file ending in _en.md inside source_analyses/",
+        "Creates a file ending in _he.md inside source_analyses/",
+        "English file contains section '7. Recommended Classification'",
+        "Hebrew file contains section '7. המלצת סיווג'",
+        "The recommended classification is explicitly stated as X, Y, I, or A",
+        "English file uses terms 'anticipates' or 'obviousness' or 'discloses'",
+        "Hebrew file uses terms 'פוסל' or 'מגלה' or 'אי-יצירתיות'"
+      ]
+    }
+  ]
+}

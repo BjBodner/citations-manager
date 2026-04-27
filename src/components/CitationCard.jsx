@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { SUB_CLASSIFICATIONS } from '../data/constants.js'
 
-export default function CitationCard({ citation, onEdit, onDelete, onLinkClick, onChangeSub }) {
+export default function CitationCard({ citation, cardTheme = 'soft', onEdit, onDelete, onLinkClick, onChangeSub }) {
   const [confirming, setConfirming] = useState(false)
 
   function handleDragStart(e) {
@@ -16,7 +16,7 @@ export default function CitationCard({ citation, onEdit, onDelete, onLinkClick, 
   }
 
   return (
-    <div className="cit-card" draggable onDragStart={handleDragStart}>
+    <div className={'cit-card cit-theme-' + cardTheme} draggable onDragStart={handleDragStart}>
       <div className="cit-card-head">
         <span className="cit-pub">{citation.publicationNumber || '—'}</span>
         <div className="cit-actions">

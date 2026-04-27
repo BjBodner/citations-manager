@@ -1,0 +1,4 @@
+node_modules
+.claude
+source_analyses
+*.local
