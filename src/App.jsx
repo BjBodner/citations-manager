@@ -14,8 +14,10 @@ export default function App() {
     state,
     addBoard, renameBoard, deleteBoard, setActiveBoard,
     addCitation, updateCitation, deleteCitation, moveCitation, importCitations,
+    clearTodoCitations,
     replaceState, mergeState,
-    celebration, clearCelebration, setSoundEnabled
+    celebration, clearCelebration, setSoundEnabled,
+    undo, canUndo
   } = useAppState()
 
   const level = getLevel(state.gamification?.level ?? 0)
@@ -106,9 +108,14 @@ export default function App() {
                     {activeBoard.number && <span className="muted"> · #{activeBoard.number}</span>}
                     <span className="muted"> · {activeBoard.citations.length} ציטוטים</span>
                   </div>
-                  <button className="btn btn-primary" onClick={() => { setCreatingCitation(true); setEditingCitation(null) }}>
-                    + ציטוט חדש
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="btn" onClick={undo} disabled={!canUndo} title="בטל פעולה אחרונה">
+                      ↩ בטל
+                    </button>
+                    <button className="btn btn-primary" onClick={() => { setCreatingCitation(true); setEditingCitation(null) }}>
+                      + ציטוט חדש
+                    </button>
+                  </div>
                 </div>
 
                 {(creatingCitation || editingCitation) && (
@@ -131,6 +138,7 @@ export default function App() {
                   onDelete={(citId) => deleteCitation(activeBoard.id, citId)}
                   onLinkClick={handleLinkClick}
                   onChangeSub={(citId, sub) => updateCitation(activeBoard.id, citId, { subClassification: sub })}
+                  onClearTodo={() => clearTodoCitations(activeBoard.id)}
                 />
               </>
             )}

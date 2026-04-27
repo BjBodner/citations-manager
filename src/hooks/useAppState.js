@@ -19,6 +19,20 @@ export function useAppState() {
   const clearCelebration = useCallback(() => setCelebration(null), [])
   const firstRun = useRef(true)
 
+  // undo history (in-memory only, not persisted)
+  const stateRef = useRef(state)
+  useEffect(() => { stateRef.current = state }, [state])
+  const historyRef = useRef([])
+  const [canUndo, setCanUndo] = useState(false)
+
+  const undo = useCallback(() => {
+    if (historyRef.current.length === 0) return
+    const prev = historyRef.current[historyRef.current.length - 1]
+    historyRef.current = historyRef.current.slice(0, -1)
+    setState(prev)
+    setCanUndo(historyRef.current.length > 0)
+  }, [])
+
   useEffect(() => {
     // skip the very first save on mount to avoid an unnecessary write,
     // but still save on every subsequent change.
@@ -60,6 +74,8 @@ export function useAppState() {
   }, [])
 
   const addCitation = useCallback((boardId, partial) => {
+    historyRef.current = [...historyRef.current.slice(-19), stateRef.current]
+    setCanUndo(true)
     const cit = newCitation({ ...partial, id: uid('cit') })
     setState(s => ({
       ...s,
@@ -71,6 +87,8 @@ export function useAppState() {
   }, [])
 
   const updateCitation = useCallback((boardId, citationId, patch) => {
+    historyRef.current = [...historyRef.current.slice(-19), stateRef.current]
+    setCanUndo(true)
     setState(s => ({
       ...s,
       boards: s.boards.map(b => b.id !== boardId ? b : ({
@@ -83,6 +101,8 @@ export function useAppState() {
   }, [])
 
   const deleteCitation = useCallback((boardId, citationId) => {
+    historyRef.current = [...historyRef.current.slice(-19), stateRef.current]
+    setCanUndo(true)
     setState(s => ({
       ...s,
       boards: s.boards.map(b => b.id !== boardId ? b : ({
@@ -91,7 +111,20 @@ export function useAppState() {
     }))
   }, [])
 
+  const clearTodoCitations = useCallback((boardId) => {
+    historyRef.current = [...historyRef.current.slice(-19), stateRef.current]
+    setCanUndo(true)
+    setState(s => ({
+      ...s,
+      boards: s.boards.map(b => b.id !== boardId ? b : ({
+        ...b, citations: b.citations.filter(c => c.status !== 'todo')
+      }))
+    }))
+  }, [])
+
   const moveCitation = useCallback((boardId, citationId, newStatus, newSub = undefined) => {
+    historyRef.current = [...historyRef.current.slice(-19), stateRef.current]
+    setCanUndo(true)
     let pendingCelebration = null
     setState(s => {
       let firstTimeCompletion = false
@@ -151,6 +184,8 @@ export function useAppState() {
   }, [])
 
   const importCitations = useCallback((boardId, items) => {
+    historyRef.current = [...historyRef.current.slice(-19), stateRef.current]
+    setCanUndo(true)
     setState(s => ({
       ...s,
       boards: s.boards.map(b => b.id !== boardId ? b : ({
@@ -195,8 +230,10 @@ export function useAppState() {
     state,
     addBoard, renameBoard, deleteBoard, setActiveBoard,
     addCitation, updateCitation, deleteCitation, moveCitation, importCitations,
+    clearTodoCitations,
     replaceState, mergeState,
     celebration, clearCelebration,
-    setSoundEnabled
+    setSoundEnabled,
+    undo, canUndo
   }
 }

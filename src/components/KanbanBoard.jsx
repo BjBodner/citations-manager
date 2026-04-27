@@ -3,10 +3,11 @@ import { STATUSES, SUB_CLASSIFICATIONS } from '../data/constants.js'
 import CitationCard from './CitationCard.jsx'
 
 export default function KanbanBoard({
-  citations, level, onMove, onEdit, onDelete, onLinkClick, onChangeSub
+  citations, level, onMove, onEdit, onDelete, onLinkClick, onChangeSub, onClearTodo
 }) {
   const [activeRelevantTab, setActiveRelevantTab] = useState('ALL')
   const [dragOver, setDragOver] = useState(null)
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
 
   function onDragOver(e, statusId) {
     e.preventDefault()
@@ -49,8 +50,29 @@ export default function KanbanBoard({
           >
             <div className="kanban-col-head">
               <span className="kanban-col-title">{col.label}</span>
-              <span className="kanban-col-count">{items.length}</span>
+              <div className="kanban-col-head-actions">
+                {col.id === 'todo' && items.length > 0 && (
+                  <button
+                    className="btn-icon danger"
+                    title="נקה עמודה"
+                    onClick={() => setShowClearConfirm(true)}
+                  >🗑</button>
+                )}
+                <span className="kanban-col-count">{items.length}</span>
+              </div>
             </div>
+            {col.id === 'todo' && showClearConfirm && (
+              <div className="clear-confirm-overlay">
+                <div className="clear-confirm-card">
+                  <span className="clear-confirm-icon">⚠️</span>
+                  <p className="clear-confirm-msg">למחוק את כל {items.length} הציטוטים שטרם התחילו?</p>
+                  <div className="clear-confirm-actions">
+                    <button className="btn btn-danger" onClick={() => { onClearTodo(); setShowClearConfirm(false) }}>מחק הכל</button>
+                    <button className="btn" onClick={() => setShowClearConfirm(false)}>ביטול</button>
+                  </div>
+                </div>
+              </div>
+            )}
             {col.id === 'relevant' && (
               <div className="sub-tabs">
                 <button className={'sub-tab' + (activeRelevantTab === 'ALL' ? ' active' : '')} onClick={() => setActiveRelevantTab('ALL')}>הכל</button>
