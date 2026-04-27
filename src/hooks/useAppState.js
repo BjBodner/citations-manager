@@ -116,7 +116,9 @@ export function useAppState() {
               status: newStatus,
               subClassification: sub,
               updatedAt: Date.now(),
-              completedAt: completed ? (c.completedAt ?? Date.now()) : null
+              // Once a citation has been completed, keep the timestamp so
+              // moving back-and-forth doesn't re-award points.
+              completedAt: completed ? (c.completedAt ?? Date.now()) : c.completedAt
             }
           })
         }
