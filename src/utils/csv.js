@@ -61,16 +61,30 @@ export function parseCitationsCSV(text) {
   return { ok: true, rows: out, errors }
 }
 
+const STATUS_LABELS = {
+  'todo': 'טרם התחיל',
+  'in-progress': 'בביצוע',
+  'relevant': 'רלוונטי',
+  'irrelevant': 'לא רלוונטי'
+}
+
 export function citationsToCSV(citations) {
   const esc = (v) => {
     const s = (v ?? '').toString()
     if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"'
     return s
   }
-  const lines = [REQUIRED_HEADERS.join(',')]
+  const headers = [...REQUIRED_HEADERS, 'status', 'sub_classification']
+  const lines = [headers.join(',')]
   for (const c of citations) {
     lines.push([
-      esc(c.publicationNumber), esc(c.title), esc(c.abstract), esc(c.link), esc(c.notes)
+      esc(c.publicationNumber),
+      esc(c.title),
+      esc(c.abstract),
+      esc(c.link),
+      esc(c.notes || ''),
+      esc(STATUS_LABELS[c.status] || c.status || ''),
+      esc(c.subClassification || '')
     ].join(','))
   }
   return lines.join('\n')

@@ -355,19 +355,12 @@ export function exportFetchedCitationsToCSV(citations) {
 // ─── Convert to app citation format ──────────────────────────────────────────
 
 export function toAppCitation(fc) {
-  const notes = [
-    fc.assignee        && `בעלים: ${fc.assignee}`,
-    `כיוון: ${directionLabel(fc.direction)}`,
-    `מקור: ${sourceLabel(fc.dataSource)}`,
-    fc.publicationDate && `תאריך: ${fc.publicationDate}`
-  ].filter(Boolean).join(' | ')
-
   return {
     publicationNumber: fc.citedPatent,
     title:    fc.title   || '',
     abstract: '',
     link:     fc.sourceUrl || '',
-    notes,
+    notes:    '',
     status:            'todo',
     subClassification: fc.classification || null
   }
